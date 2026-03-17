@@ -38,10 +38,13 @@ jobs:
         path: target/world-magic.jar
         retention-days: 30
 
-    - name: Create Release on tag
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Automatic Release
       uses: softprops/action-gh-release@v2
+      if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
       with:
-        files: target/world-magic.jar
+        tag_name: latest
+        name: "Latest Build"
+        files: target/*.jar
+        generate_release_notes: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}}}
