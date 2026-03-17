@@ -17,10 +17,18 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 
 ---
 
-## 📁 快速部署说明
+## 前期准备
 
-### 0. 从本项目下载如下 **2 个文件** 
+### 1. 从本项目下载如下 **2 个文件** 
 <img width="1749" height="609" alt="image" src="https://github.com/user-attachments/assets/ff40d71f-aaf5-4505-aae6-0b3edbd78662" />
+
+### 2. 确定游戏机ip和端口号
+
+<img width="1487" height="687" alt="image" src="https://github.com/user-attachments/assets/ee839a64-0726-4d97-8b72-038ce3298de8" />
+
+---
+
+## 📁 快速部署说明
 
 ### 1. 上传文件到游戏服务器
 
