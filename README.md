@@ -41,45 +41,60 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 
 ```properties
 # ===== 基础设置 =====
-# domain: 填写你的公网 IP 或解析到该 IP 的域名
+# domain: 必填。填写你的公网 IP 或解析到该 IP 的域名。用于生成客户端连接链接。
 domain=你的服务器IP
+# email: 选填。用于生成自签名证书的邮箱标识。
 email=admin@example.com
 
 # ===== 启用的协议 =====
+# enabled-protocols: 填写你想要运行的协议。
 # 多个协议用逗号分隔，可选: hysteria2, vmess-ws, anytls, tuic, argo
+# 提示：由于游戏机通常只开放一个端口(25565)，建议只开启 1-2 个协议。
 enabled-protocols=hysteria2,vmess-ws,anytls
 
 # ===== Hysteria2 配置 (UDP/QUIC) =====
-# 端口需在游戏机面板开放 UDP
+# hy2-port: 监听端口。需在游戏机面板开放对应的 UDP 端口。
 hy2-port=25565
-# 密码留空则自动生成随机 UUID
+# hy2-password: 连接密码。
+# 【重要】如果留空，插件启动时会随机生成一个 UUID 作为密码。
 hy2-password=
+# hy2-sni: 伪装域名 (SNI)，建议保持默认或填入主流域名。
 hy2-sni=itunes.apple.com
 
 # ===== Vmess-WS 配置 (WebSocket + TLS) =====
-# 端口需在游戏机面板开放 TCP
+# vmess-port: 监听端口。需在游戏机面板开放对应的 TCP 端口。
 vmess-port=25566
-# UUID 留空则自动生成
+# vmess-uuid: 用户 UUID。
+# 【重要】如果留空，插件启动时会自动生成。
 vmess-uuid=
+# vmess-path: WebSocket 路径。
 vmess-path=/vmess
 
 # ===== AnyTLS 配置 (TLS 伪装) =====
-# 端口需在游戏机面板开放 TCP
+# anytls-port: 监听端口。需在游戏机面板开放对应的 TCP 端口。
 anytls-port=25567
+# anytls-password: 连接密码。留空则自动随机生成。
 anytls-password=
 anytls-sni=www.apple.com
 
 # ===== Argo 隧道配置 (Cloudflare) =====
+# argo-enabled: 是否启用 Cloudflare Argo 隧道。启用后无需在面板开放端口。
 argo-enabled=false
+# argo-token: 在 Cloudflare Zero Trust 获取的隧道 Token。
 argo-token=your-cloudflare-tunnel-token
+# argo-hostname: 隧道绑定的域名。
 argo-hostname=your-domain.com
 
 # ===== SSHX 网页终端 =====
+# sshx-enabled: 是否启用 SSHX 远程终端。
+# 开启后可通过生成的链接直接在浏览器操作服务器控制台。
 sshx-enabled=true
 
 # ===== 通用设置 =====
-# 节点名称前缀 (如 JP, US, HK)
+# remarks-prefix: 节点名称前缀。
+# 例如设置为 JP，生成的节点名为 "JP-zv-hysteria2"。
 remarks-prefix=JP
+# self-sign-cert: 是否自动生成自签名证书。默认为 true。
 self-sign-cert=true
 ```
 
@@ -99,6 +114,9 @@ self-sign-cert=true
 ## 📋 如何获取节点和 SSHX 链接？
 
 插件启动成功后，会在服务器根目录自动创建一个隐藏的 `.cache/` 文件夹，所有信息均保存在此。
+
+> [!IMPORTANT]
+> 节点信息**5分钟**之后销毁，请及时保存！
 
 ### 1. 获取代理节点（订阅链接）
 
