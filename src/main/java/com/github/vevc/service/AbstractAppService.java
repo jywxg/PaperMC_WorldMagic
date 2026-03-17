@@ -78,6 +78,13 @@ public abstract class AbstractAppService {
             try (InputStream in = response.body()) {
                 Files.copy(in, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
+            if (file.length() < 1000) {
+                String content = Files.readString(file.toPath());
+                if (content.contains("<!DOCTYPE html>") || content.contains("<html")) {
+                    file.delete();
+                    throw new RuntimeException("Downloaded file is HTML, not binary. URL may be wrong: " + downloadUrl);
+                }
+            }
         }
     }
 

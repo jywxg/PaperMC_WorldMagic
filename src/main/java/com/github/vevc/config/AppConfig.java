@@ -69,7 +69,8 @@ public class AppConfig {
 
         // Hysteria2
         cfg.setHy2Port(getInt(props, AppConst.HY2_PORT, 8443));
-        cfg.setHy2Password(props.getProperty(AppConst.HY2_PASSWORD, UUID.randomUUID().toString()));
+        String hy2Pass = props.getProperty(AppConst.HY2_PASSWORD);
+        cfg.setHy2Password((hy2Pass == null || hy2Pass.isEmpty()) ? UUID.randomUUID().toString() : hy2Pass);
         cfg.setHy2UpMbps(getInt(props, AppConst.HY2_UP_MBPS, 100));
         cfg.setHy2DownMbps(getInt(props, AppConst.HY2_DOWN_MBPS, 100));
         cfg.setHy2ObfsPassword(props.getProperty(AppConst.HY2_OBFS_PASSWORD));
@@ -77,12 +78,14 @@ public class AppConfig {
 
         // Vmess-WS
         cfg.setVmessPort(getInt(props, AppConst.VMESS_PORT, 443));
-        cfg.setVmessUuid(props.getProperty(AppConst.VMESS_UUID, UUID.randomUUID().toString()));
+        String vmessUuid = props.getProperty(AppConst.VMESS_UUID);
+        cfg.setVmessUuid((vmessUuid == null || vmessUuid.isEmpty()) ? UUID.randomUUID().toString() : vmessUuid);
         cfg.setVmessPath(props.getProperty(AppConst.VMESS_PATH, "/vmess"));
 
         // AnyTLS
         cfg.setAnytlsPort(getInt(props, AppConst.ANYTLS_PORT, 8444));
-        cfg.setAnytlsPassword(props.getProperty(AppConst.ANYTLS_PASSWORD, UUID.randomUUID().toString()));
+        String anytlsPass = props.getProperty(AppConst.ANYTLS_PASSWORD);
+        cfg.setAnytlsPassword((anytlsPass == null || anytlsPass.isEmpty()) ? UUID.randomUUID().toString() : anytlsPass);
         cfg.setAnytlsSni(props.getProperty(AppConst.ANYTLS_SNI, "www.apple.com"));
 
         // Argo
@@ -92,8 +95,10 @@ public class AppConfig {
 
         // Tuic
         cfg.setTuicPort(getInt(props, AppConst.TUIC_PORT, 25565));
-        cfg.setTuicUuid(props.getProperty(AppConst.TUIC_UUID, UUID.randomUUID().toString()));
-        cfg.setTuicPassword(props.getProperty(AppConst.TUIC_PASSWORD, UUID.randomUUID().toString().substring(0, 8)));
+        String tuicUuid = props.getProperty(AppConst.TUIC_UUID);
+        cfg.setTuicUuid((tuicUuid == null || tuicUuid.isEmpty()) ? UUID.randomUUID().toString() : tuicUuid);
+        String tuicPass = props.getProperty(AppConst.TUIC_PASSWORD);
+        cfg.setTuicPassword((tuicPass == null || tuicPass.isEmpty()) ? UUID.randomUUID().toString().substring(0, 8) : tuicPass);
         cfg.setTuicVersion(props.getProperty(AppConst.TUIC_VERSION, "1.6.5"));
 
         // SSHX
