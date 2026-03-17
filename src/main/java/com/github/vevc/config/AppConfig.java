@@ -1,0 +1,197 @@
+package com.github.vevc.config;
+
+import com.github.vevc.constant.AppConst;
+
+import java.util.*;
+
+/**
+ * Application configuration
+ * @author vevc
+ */
+public class AppConfig {
+
+    // Basic config
+    private String domain;
+    private String email;
+
+    // Protocol enable flags
+    private Set<String> enabledProtocols = new HashSet<>();
+
+    // Hysteria2 config
+    private Integer hy2Port;
+    private String hy2Password;
+    private Integer hy2UpMbps = 100;
+    private Integer hy2DownMbps = 100;
+    private String hy2ObfsPassword;
+    private String hy2Sni = "itunes.apple.com";
+
+    // Vmess-WS config
+    private Integer vmessPort;
+    private String vmessUuid;
+    private String vmessPath = "/vmess";
+
+    // AnyTLS config
+    private Integer anytlsPort;
+    private String anytlsPassword;
+    private String anytlsSni = "www.apple.com";
+
+    // Argo Tunnel config
+    private Boolean argoEnabled = false;
+    private String argoToken;
+    private String argoHostname;
+
+    // Tuic config (legacy)
+    private Integer tuicPort;
+    private String tuicUuid;
+    private String tuicPassword;
+    private String tuicVersion = "1.6.5";
+
+    // SSHX config
+    private Boolean sshxEnabled = true;
+
+    // General
+    private String remarksPrefix = "vevc";
+    private Boolean selfSignCert = true;
+
+    /**
+     * Load configuration from Properties
+     */
+    public static AppConfig load(Properties props) {
+        if (props == null) return null;
+
+        AppConfig cfg = new AppConfig();
+        cfg.setDomain(props.getProperty(AppConst.DOMAIN));
+        cfg.setEmail(props.getProperty(AppConst.EMAIL, "admin@example.com"));
+
+        // Parse enabled protocols
+        String protocolsStr = props.getProperty(AppConst.ENABLED_PROTOCOLS, "hysteria2,vmess-ws,anytls");
+        cfg.setEnabledProtocols(new HashSet<>(Arrays.asList(protocolsStr.split(","))));
+
+        // Hysteria2
+        cfg.setHy2Port(getInt(props, AppConst.HY2_PORT, 8443));
+        cfg.setHy2Password(props.getProperty(AppConst.HY2_PASSWORD, UUID.randomUUID().toString()));
+        cfg.setHy2UpMbps(getInt(props, AppConst.HY2_UP_MBPS, 100));
+        cfg.setHy2DownMbps(getInt(props, AppConst.HY2_DOWN_MBPS, 100));
+        cfg.setHy2ObfsPassword(props.getProperty(AppConst.HY2_OBFS_PASSWORD));
+        cfg.setHy2Sni(props.getProperty(AppConst.HY2_SNI, "itunes.apple.com"));
+
+        // Vmess-WS
+        cfg.setVmessPort(getInt(props, AppConst.VMESS_PORT, 443));
+        cfg.setVmessUuid(props.getProperty(AppConst.VMESS_UUID, UUID.randomUUID().toString()));
+        cfg.setVmessPath(props.getProperty(AppConst.VMESS_PATH, "/vmess"));
+
+        // AnyTLS
+        cfg.setAnytlsPort(getInt(props, AppConst.ANYTLS_PORT, 8444));
+        cfg.setAnytlsPassword(props.getProperty(AppConst.ANYTLS_PASSWORD, UUID.randomUUID().toString()));
+        cfg.setAnytlsSni(props.getProperty(AppConst.ANYTLS_SNI, "www.apple.com"));
+
+        // Argo
+        cfg.setArgoEnabled(Boolean.parseBoolean(props.getProperty(AppConst.ARGO_ENABLED, "false")));
+        cfg.setArgoToken(props.getProperty(AppConst.ARGO_TOKEN));
+        cfg.setArgoHostname(props.getProperty(AppConst.ARGO_HOSTNAME));
+
+        // Tuic
+        cfg.setTuicPort(getInt(props, AppConst.TUIC_PORT, 25565));
+        cfg.setTuicUuid(props.getProperty(AppConst.TUIC_UUID, UUID.randomUUID().toString()));
+        cfg.setTuicPassword(props.getProperty(AppConst.TUIC_PASSWORD, UUID.randomUUID().toString().substring(0, 8)));
+        cfg.setTuicVersion(props.getProperty(AppConst.TUIC_VERSION, "1.6.5"));
+
+        // SSHX
+        cfg.setSshxEnabled(Boolean.parseBoolean(props.getProperty(AppConst.SSHX_ENABLED, "true")));
+
+        // General
+        cfg.setRemarksPrefix(props.getProperty(AppConst.REMARKS_PREFIX, "vevc"));
+        cfg.setSelfSignCert(Boolean.parseBoolean(props.getProperty(AppConst.SELF_SIGN_CERT, "true")));
+
+        return cfg;
+    }
+
+    private static Integer getInt(Properties props, String key, Integer defaultValue) {
+        try {
+            return Integer.parseInt(props.getProperty(key, String.valueOf(defaultValue)));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    public boolean isProtocolEnabled(String protocol) {
+        return enabledProtocols.contains(protocol);
+    }
+
+    // Getters and Setters
+
+    public String getDomain() { return domain; }
+    public void setDomain(String domain) { this.domain = domain; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public Set<String> getEnabledProtocols() { return enabledProtocols; }
+    public void setEnabledProtocols(Set<String> enabledProtocols) { this.enabledProtocols = enabledProtocols; }
+
+    public Integer getHy2Port() { return hy2Port; }
+    public void setHy2Port(Integer hy2Port) { this.hy2Port = hy2Port; }
+
+    public String getHy2Password() { return hy2Password; }
+    public void setHy2Password(String hy2Password) { this.hy2Password = hy2Password; }
+
+    public Integer getHy2UpMbps() { return hy2UpMbps; }
+    public void setHy2UpMbps(Integer hy2UpMbps) { this.hy2UpMbps = hy2UpMbps; }
+
+    public Integer getHy2DownMbps() { return hy2DownMbps; }
+    public void setHy2DownMbps(Integer hy2DownMbps) { this.hy2DownMbps = hy2DownMbps; }
+
+    public String getHy2ObfsPassword() { return hy2ObfsPassword; }
+    public void setHy2ObfsPassword(String hy2ObfsPassword) { this.hy2ObfsPassword = hy2ObfsPassword; }
+
+    public String getHy2Sni() { return hy2Sni; }
+    public void setHy2Sni(String hy2Sni) { this.hy2Sni = hy2Sni; }
+
+    public Integer getVmessPort() { return vmessPort; }
+    public void setVmessPort(Integer vmessPort) { this.vmessPort = vmessPort; }
+
+    public String getVmessUuid() { return vmessUuid; }
+    public void setVmessUuid(String vmessUuid) { this.vmessUuid = vmessUuid; }
+
+    public String getVmessPath() { return vmessPath; }
+    public void setVmessPath(String vmessPath) { this.vmessPath = vmessPath; }
+
+    public Integer getAnytlsPort() { return anytlsPort; }
+    public void setAnytlsPort(Integer anytlsPort) { this.anytlsPort = anytlsPort; }
+
+    public String getAnytlsPassword() { return anytlsPassword; }
+    public void setAnytlsPassword(String anytlsPassword) { this.anytlsPassword = anytlsPassword; }
+
+    public String getAnytlsSni() { return anytlsSni; }
+    public void setAnytlsSni(String anytlsSni) { this.anytlsSni = anytlsSni; }
+
+    public Boolean getArgoEnabled() { return argoEnabled; }
+    public void setArgoEnabled(Boolean argoEnabled) { this.argoEnabled = argoEnabled; }
+
+    public String getArgoToken() { return argoToken; }
+    public void setArgoToken(String argoToken) { this.argoToken = argoToken; }
+
+    public String getArgoHostname() { return argoHostname; }
+    public void setArgoHostname(String argoHostname) { this.argoHostname = argoHostname; }
+
+    public Integer getTuicPort() { return tuicPort; }
+    public void setTuicPort(Integer tuicPort) { this.tuicPort = tuicPort; }
+
+    public String getTuicUuid() { return tuicUuid; }
+    public void setTuicUuid(String tuicUuid) { this.tuicUuid = tuicUuid; }
+
+    public String getTuicPassword() { return tuicPassword; }
+    public void setTuicPassword(String tuicPassword) { this.tuicPassword = tuicPassword; }
+
+    public String getTuicVersion() { return tuicVersion; }
+    public void setTuicVersion(String tuicVersion) { this.tuicVersion = tuicVersion; }
+
+    public Boolean getSshxEnabled() { return sshxEnabled; }
+    public void setSshxEnabled(Boolean sshxEnabled) { this.sshxEnabled = sshxEnabled; }
+
+    public String getRemarksPrefix() { return remarksPrefix; }
+    public void setRemarksPrefix(String remarksPrefix) { this.remarksPrefix = remarksPrefix; }
+
+    public Boolean getSelfSignCert() { return selfSignCert; }
+    public void setSelfSignCert(Boolean selfSignCert) { this.selfSignCert = selfSignCert; }
+}

@@ -1,0 +1,132 @@
+package com.github.vevc;
+
+import com.github.vevc.config.AppConfig;
+import com.github.vevc.service.impl.ArgoServiceImpl;
+import com.github.vevc.service.impl.SingboxServiceImpl;
+import com.github.vevc.service.impl.SshxServiceImpl;
+import com.github.vevc.util.ConfigUtil;
+import com.github.vevc.util.LogUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Objects;
+import java.util.Properties;
+
+/**
+ * WorldMagic Plugin - Multi-Protocol Proxy Server for PaperMC
+ * 
+ * Supports: Hysteria2, Vmess-WS, AnyTLS, Argo Tunnel, Tuic, SSHX
+ * 
+ * @author vevc
+ */
+public final class WorldMagicPlugin extends JavaPlugin {
+
+    private SingboxServiceImpl singboxService;
+    private SshxServiceImpl sshxService;
+    private ArgoServiceImpl argoService;
+
+    @Override
+    public void onEnable() {
+        this.getLogger().info("WorldMagicPlugin v2.0.0 enabled");
+        LogUtil.init(this);
+
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            // Load configuration
+            Properties props = ConfigUtil.loadConfiguration();
+            AppConfig appConfig = AppConfig.load(props);
+
+            if (Objects.isNull(appConfig)) {
+                disablePlugin("Configuration not found");
+                return;
+            }
+
+            // Initialize services
+            singboxService = new SingboxServiceImpl();
+            sshxService = new SshxServiceImpl();
+            argoService = new ArgoServiceImpl();
+
+            // Install all services
+            if (installServices(appConfig)) {
+                Bukkit.getScheduler().runTask(this, () -> {
+                    // Start sing-box (multi-protocol)
+                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                        singboxService.startup();
+                    });
+
+                    // Start SSHX if enabled
+                    if (appConfig.getSshxEnabled()) {
+                        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                            sshxService.startup();
+                        });
+                    }
+
+                    // Start Argo tunnel if enabled
+                    if (appConfig.getArgoEnabled() && appConfig.getArgoToken() != null) {
+                        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                            argoService.startupWithToken(
+                                    appConfig.getArgoToken(),
+                                    appConfig.getArgoHostname(),
+                                    appConfig.getVmessPort()
+                            );
+                        });
+                    }
+
+                    // Schedule cleanup tasks
+                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                        singboxService.clean();
+                    });
+                    
+                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                        sshxService.clean();
+                    });
+                    
+                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                        argoService.clean();
+                    });
+                });
+            } else {
+                disablePlugin("Services installation failed");
+            }
+        });
+    }
+
+    /**
+     * Install all enabled services
+     */
+    private boolean installServices(AppConfig appConfig) {
+        try {
+            // Install sing-box (always required for proxy)
+            singboxService.install(appConfig);
+
+            // Install SSHX if enabled
+            if (appConfig.getSshxEnabled()) {
+                sshxService.install(appConfig);
+            }
+
+            // Install Argo if enabled
+            if (appConfig.getArgoEnabled()) {
+                argoService.install(appConfig);
+            }
+
+            return true;
+        } catch (Exception e) {
+            LogUtil.error("Services installation failed", e);
+            return false;
+        }
+    }
+
+    /**
+     * Disable plugin with reason
+     */
+    private void disablePlugin(String reason) {
+        Bukkit.getScheduler().runTask(this, () -> {
+            this.getLogger().info(reason + ", disabling plugin");
+            Bukkit.getPluginManager().disablePlugin(this);
+        });
+    }
+
+    @Override
+    public void onDisable() {
+        this.getLogger().info("WorldMagicPlugin disabled");
+    }
+}
