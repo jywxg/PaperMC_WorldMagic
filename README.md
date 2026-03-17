@@ -139,7 +139,7 @@ self-sign-cert=true
 
 本项目在开发过程中参考并借鉴了以下优秀项目及文章，感谢原作者的无私分享：
 
-- **[Sing-box-main](https://github.com/eooce/Sing-box)**：提供了受限环境下的核心代理逻辑参考。
+- **[eooce/Sing-box](https://github.com/eooce/Sing-box)**：提供了受限环境下的核心代理逻辑参考。
 - **[vevc/world-magic](https://github.com/vevc/world-magic)**：本项目的基础架构来源。
 - **[liming](https://liming.hidns.vip/index.php/archives/34/)**：感谢作者 liming 在文章中分享的技术思路与实践经验。
 
