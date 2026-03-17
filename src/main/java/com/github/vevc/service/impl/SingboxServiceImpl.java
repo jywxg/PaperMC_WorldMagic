@@ -26,14 +26,14 @@ public class SingboxServiceImpl extends AbstractAppService {
     private static final String CERT_KEY_NAME = "heapdump.hprof"; // Key file disguised as heap dump
     private static final String CERT_CRT_NAME = "javacore.txt";   // Cert file disguised as javacore
 
-    private static final String SINGBOX_VERSION = "1.12.0";  // Use version supporting AnyTLS
-    private static final String SINGBOX_DOWNLOAD_URL = 
+    private static final String SINGBOX_VERSION = "1.12.0";
+    private static final String SINGBOX_DOWNLOAD_URL =
             "https://github.com/SagerNet/sing-box/releases/download/v%s/sing-box-%s-linux-%s.tar.gz";
 
     @Override
     protected String getAppDownloadUrl(String appVersion) {
         String arch = OS_IS_ARM ? "arm64" : "amd64";
-        return String.format(SINGBOX_DOWNLOAD_URL, appVersion, arch, arch);
+        return String.format(SINGBOX_DOWNLOAD_URL, appVersion, appVersion, arch);
     }
 
     @Override
