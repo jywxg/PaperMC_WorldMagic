@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Sing-box configuration builder
+ * Sing-box configuration builder (Optimized based on user sample)
  * Generates sing-box config.json and share links
  * @author zv
  */
@@ -20,7 +20,6 @@ public class SingboxConfigBuilder {
     private final String nodePrefix;
     private final JsonArray inbounds = new JsonArray();
     private final JsonArray outbounds = new JsonArray();
-    private final JsonObject dns = new JsonObject();
     private final JsonObject route = new JsonObject();
 
     public SingboxConfigBuilder(AppConfig config) {
@@ -28,22 +27,17 @@ public class SingboxConfigBuilder {
         this.nodePrefix = config.getRemarksPrefix();
     }
 
-    /**
-     * Build complete sing-box configuration JSON
-     */
     public String build() {
         JsonObject root = new JsonObject();
 
-        // Log config (silent mode)
+        // Log config
         JsonObject log = new JsonObject();
-        log.addProperty("level", "off");
+        log.addProperty("disabled", false);
+        log.addProperty("level", "info");
+        log.addProperty("timestamp", true);
         root.add("log", log);
 
-        // DNS config
-        buildDnsConfig();
-        root.add("dns", dns);
-
-        // Build inbounds for each enabled protocol
+        // Build inbounds
         if (config.isProtocolEnabled("hysteria2")) {
             inbounds.add(buildHysteria2Inbound());
         }
@@ -56,61 +50,17 @@ public class SingboxConfigBuilder {
         if (config.isProtocolEnabled("tuic")) {
             inbounds.add(buildTuicInbound());
         }
-
         root.add("inbounds", inbounds);
 
         // Outbounds
         buildOutbounds();
         root.add("outbounds", outbounds);
 
-        // Route
+        // Route (Optimized based on sample)
         buildRoute();
         root.add("route", route);
 
         return new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(root);
-    }
-
-    private void buildDnsConfig() {
-        dns.addProperty("enable", true);
-
-        JsonArray servers = new JsonArray();
-        JsonObject dnsServer = new JsonObject();
-        dnsServer.addProperty("address", "https://1.1.1.1/dns-query");
-        dnsServer.addProperty("detour", "direct");
-        servers.add(dnsServer);
-        dns.add("servers", servers);
-        
-        // New DNS rule format
-        JsonArray rules = new JsonArray();
-        dns.add("rules", rules);
-    }
-
-    private void buildOutbounds() {
-        // Direct
-        JsonObject direct = new JsonObject();
-        direct.addProperty("type", "direct");
-        direct.addProperty("tag", "direct");
-        outbounds.add(direct);
-
-        // Block
-        JsonObject block = new JsonObject();
-        block.addProperty("type", "block");
-        block.addProperty("tag", "block");
-        outbounds.add(block);
-    }
-
-    private void buildRoute() {
-        route.addProperty("final", "direct");
-
-        JsonArray rules = new JsonArray();
-
-        // New route action format for DNS
-        JsonObject dnsRule = new JsonObject();
-        dnsRule.addProperty("protocol", "dns");
-        dnsRule.addProperty("action", "hijack-dns");
-        rules.add(dnsRule);
-
-        route.add("rules", rules);
     }
 
     private JsonObject buildHysteria2Inbound() {
@@ -119,29 +69,25 @@ public class SingboxConfigBuilder {
         inbound.addProperty("tag", "hy2-in");
         inbound.addProperty("listen", "::");
         inbound.addProperty("listen_port", config.getHy2Port());
-        inbound.addProperty("up_mbps", config.getHy2UpMbps());
-        inbound.addProperty("down_mbps", config.getHy2DownMbps());
-
-        // User authentication
+        
         JsonArray users = new JsonArray();
         JsonObject user = new JsonObject();
         user.addProperty("password", config.getHy2Password());
         users.add(user);
         inbound.add("users", users);
 
-        // Obfuscation (optional)
-        if (config.getHy2ObfsPassword() != null && !config.getHy2ObfsPassword().isEmpty()) {
-            JsonObject obfs = new JsonObject();
-            obfs.addProperty("type", "salamander");
-            obfs.addProperty("password", config.getHy2ObfsPassword());
-            inbound.add("obfs", obfs);
-        }
+        inbound.addProperty("ignore_client_bandwidth", false);
 
-        // TLS config (self-signed)
-        JsonObject tls = buildSelfSignTls(config.getHy2Sni());
+        JsonObject tls = new JsonObject();
+        tls.addProperty("enabled", true);
+        tls.addProperty("server_name", config.getHy2Sni());
+        tls.addProperty("certificate_path", "javacore.txt");
+        tls.addProperty("key_path", "heapdump.hprof");
+        JsonArray alpn = new JsonArray();
+        alpn.add("h3");
+        tls.add("alpn", alpn);
         inbound.add("tls", tls);
 
-        // Masquerade (Must be a string URL in sing-box Hysteria2)
         inbound.addProperty("masquerade", "https://itunes.apple.com");
 
         return inbound;
@@ -154,18 +100,19 @@ public class SingboxConfigBuilder {
         inbound.addProperty("listen", "::");
         inbound.addProperty("listen_port", config.getVmessPort());
 
-        // User authentication
         JsonArray users = new JsonArray();
         JsonObject user = new JsonObject();
         user.addProperty("uuid", config.getVmessUuid());
         users.add(user);
         inbound.add("users", users);
 
-        // TLS
-        JsonObject tls = buildSelfSignTls(config.getDomain());
+        JsonObject tls = new JsonObject();
+        tls.addProperty("enabled", true);
+        tls.addProperty("server_name", config.getDomain());
+        tls.addProperty("certificate_path", "javacore.txt");
+        tls.addProperty("key_path", "heapdump.hprof");
         inbound.add("tls", tls);
 
-        // WebSocket transport
         JsonObject transport = new JsonObject();
         transport.addProperty("type", "ws");
         transport.addProperty("path", config.getVmessPath());
@@ -182,15 +129,17 @@ public class SingboxConfigBuilder {
         inbound.addProperty("listen", "::");
         inbound.addProperty("listen_port", config.getAnytlsPort());
 
-        // User authentication
         JsonArray users = new JsonArray();
         JsonObject user = new JsonObject();
         user.addProperty("password", config.getAnytlsPassword());
         users.add(user);
         inbound.add("users", users);
 
-        // TLS
-        JsonObject tls = buildSelfSignTls(config.getAnytlsSni());
+        JsonObject tls = new JsonObject();
+        tls.addProperty("enabled", true);
+        tls.addProperty("server_name", config.getAnytlsSni());
+        tls.addProperty("certificate_path", "javacore.txt");
+        tls.addProperty("key_path", "heapdump.hprof");
         inbound.add("tls", tls);
 
         return inbound;
@@ -206,7 +155,6 @@ public class SingboxConfigBuilder {
 
         JsonArray users = new JsonArray();
         JsonObject user = new JsonObject();
-        user.addProperty("name", "user1");
         user.addProperty("uuid", config.getTuicUuid());
         user.addProperty("password", config.getTuicPassword());
         users.add(user);
@@ -217,48 +165,52 @@ public class SingboxConfigBuilder {
         tls.addProperty("server_name", config.getDomain());
         tls.addProperty("certificate_path", "javacore.txt");
         tls.addProperty("key_path", "heapdump.hprof");
-
         JsonArray alpn = new JsonArray();
         alpn.add("h3");
         tls.add("alpn", alpn);
-
         inbound.add("tls", tls);
 
         return inbound;
     }
 
-    private JsonObject buildSelfSignTls(String sni) {
-        JsonObject tls = new JsonObject();
-        tls.addProperty("enabled", true);
-        tls.addProperty("server_name", sni);
-
-        // Use actual certificate files (generated by openssl)
-        // Files: heapdump.hprof (key), javacore.txt (cert)
-        tls.addProperty("certificate_path", "javacore.txt");
-        tls.addProperty("key_path", "heapdump.hprof");
-
-        // ALPN
-        JsonArray alpn = new JsonArray();
-        alpn.add("h3");
-        alpn.add("h2");
-        alpn.add("http/1.1");
-        tls.add("alpn", alpn);
-
-        return tls;
+    private void buildOutbounds() {
+        JsonObject direct = new JsonObject();
+        direct.addProperty("type", "direct");
+        direct.addProperty("tag", "direct");
+        outbounds.add(direct);
     }
 
-    /**
-     * Generate node name with prefix
-     * Format: {Prefix}-zv-{Protocol}
-     * Example: JP-zv-hysteria2, US-zv-vmess-ws
-     */
+    private void buildRoute() {
+        route.addProperty("final", "direct");
+        JsonArray rules = new JsonArray();
+
+        // 1. Sniff (Reference sample)
+        JsonObject sniff = new JsonObject();
+        sniff.addProperty("action", "sniff");
+        rules.add(sniff);
+
+        // 2. Resolve (Reference sample)
+        JsonObject resolve = new JsonObject();
+        resolve.addProperty("action", "resolve");
+        resolve.addProperty("strategy", "prefer_ipv6");
+        rules.add(resolve);
+
+        // 3. Default Direct (Reference sample)
+        JsonObject directRule = new JsonObject();
+        JsonArray ipCidr = new JsonArray();
+        ipCidr.add("::/0");
+        ipCidr.add("0.0.0.0/0");
+        directRule.add("ip_cidr", ipCidr);
+        directRule.addProperty("outbound", "direct");
+        rules.add(directRule);
+
+        route.add("rules", rules);
+    }
+
     private String generateNodeName(String protocol) {
         return nodePrefix + "-zv-" + protocol;
     }
 
-    /**
-     * Generate share links for all enabled protocols
-     */
     public Map<String, String> generateShareLinks(String serverIp) {
         Map<String, String> links = new LinkedHashMap<>();
 
@@ -274,7 +226,6 @@ public class SingboxConfigBuilder {
         if (config.isProtocolEnabled("tuic")) {
             links.put("tuic", buildTuicLink(serverIp));
         }
-        // Argo tunnel support
         if (config.getArgoEnabled() && config.getArgoHostname() != null) {
             links.put("argo", buildArgoLink());
         }
@@ -282,10 +233,6 @@ public class SingboxConfigBuilder {
         return links;
     }
 
-    /**
-     * Generate subscription file names with prefix
-     * Format: {Prefix}-zv-{Protocol}
-     */
     public Map<String, String> generateFileNames() {
         Map<String, String> fileNames = new LinkedHashMap<>();
 
@@ -309,19 +256,12 @@ public class SingboxConfigBuilder {
     }
 
     private String buildHysteria2Link(String serverIp) {
-        // hysteria2://password@server:port?sni=xxx&insecure=1#name
         String nodeName = generateNodeName("hy2");
         return String.format("hysteria2://%s@%s:%d?sni=%s&insecure=1#%s",
-                config.getHy2Password(),
-                serverIp,
-                config.getHy2Port(),
-                config.getHy2Sni(),
-                nodeName
-        );
+                config.getHy2Password(), serverIp, config.getHy2Port(), config.getHy2Sni(), nodeName);
     }
 
     private String buildVmessWsLink(String serverIp) {
-        // vmess://base64(JSON)
         String nodeName = generateNodeName("vmess");
         JsonObject vmess = new JsonObject();
         vmess.addProperty("v", "2");
@@ -337,53 +277,25 @@ public class SingboxConfigBuilder {
         vmess.addProperty("tls", "tls");
         vmess.addProperty("sni", config.getDomain());
         vmess.addProperty("allowInsecure", 1);
-
-        String json = vmess.toString();
-        return "vmess://" + Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+        return "vmess://" + Base64.getEncoder().encodeToString(vmess.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     private String buildAnytlsLink(String serverIp) {
-        // anytls://password@server:port?sni=xxx&insecure=1#name
         String nodeName = generateNodeName("anytls");
         return String.format("anytls://%s@%s:%d?sni=%s&insecure=1#%s",
-                config.getAnytlsPassword(),
-                serverIp,
-                config.getAnytlsPort(),
-                config.getAnytlsSni(),
-                nodeName
-        );
+                config.getAnytlsPassword(), serverIp, config.getAnytlsPort(), config.getAnytlsSni(), nodeName);
     }
 
     private String buildTuicLink(String serverIp) {
-        // tuic://uuid:password@server:port?sni=xxx&alpn=h3&congestion_control=bbr#name
         String nodeName = generateNodeName("tuic");
         return String.format("tuic://%s:%s@%s:%d?sni=%s&alpn=h3&congestion_control=bbr&allowInsecure=1#%s",
-                config.getTuicUuid(),
-                config.getTuicPassword(),
-                serverIp,
-                config.getTuicPort(),
-                config.getDomain(),
-                nodeName
-        );
+                config.getTuicUuid(), config.getTuicPassword(), serverIp, config.getTuicPort(), config.getDomain(), nodeName);
     }
 
-    /**
-     * Build Argo tunnel subscription link
-     * Argo uses Cloudflare tunnel, so hostname is provided by Cloudflare
-     */
     private String buildArgoLink() {
-        // For Argo tunnel, we output configuration info
-        // The actual connection is via Cloudflare network
         String nodeName = generateNodeName("argo");
-        String hostname = config.getArgoHostname();
-        
-        // Return a config line that can be used with cloudflared or sing-box
-        // Format: argo://hostname?token=xxx#name
-        return String.format("argo://%s?token=%s#%s",
-                hostname,
-                config.getArgoToken() != null ? config.getArgoToken() : "",
-                nodeName
-        );
+        return String.format("argo://%s?token=%s#%s", config.getArgoHostname(), 
+                config.getArgoToken() != null ? config.getArgoToken() : "", nodeName);
     }
 
     public String getNodePrefix() {

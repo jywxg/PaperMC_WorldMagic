@@ -47,15 +47,15 @@ public class SshxServiceImpl extends AbstractAppService {
             pb.redirectErrorStream(true);
 
             LogUtil.info("Starting SSHX via sshx.io script...");
-            Process process = pb.start();
+            this.currentProcess = pb.start();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
                 LogUtil.info("[SSHX] " + line);
             }
 
-            int exitCode = process.waitFor();
+            int exitCode = currentProcess.waitFor();
             LogUtil.info("SSHX script completed with exit code: " + exitCode);
 
         } catch (Exception e) {

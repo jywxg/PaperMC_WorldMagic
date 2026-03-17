@@ -68,7 +68,7 @@ public class ArgoServiceImpl extends AbstractAppService {
             pb.redirectError(new File("/dev/null"));
 
             LogUtil.info("Starting Argo tunnel...");
-            Process process = pb.start();
+            this.currentProcess = pb.start();
             LogUtil.info("Argo tunnel started for hostname: " + hostname);
 
         } catch (Exception e) {

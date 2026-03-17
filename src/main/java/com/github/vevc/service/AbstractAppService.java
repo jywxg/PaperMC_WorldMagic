@@ -22,6 +22,7 @@ public abstract class AbstractAppService {
 
     protected static final File WORK_DIR = new File(System.getProperty("user.dir"), ".cache");
     protected static final boolean OS_IS_ARM;
+    protected Process currentProcess;
 
     static {
         String arch = System.getProperty("os.arch").toLowerCase();
@@ -47,6 +48,16 @@ public abstract class AbstractAppService {
      * Clean workspace
      */
     public abstract void clean();
+
+    /**
+     * Stop app
+     */
+    public void stop() {
+        if (currentProcess != null && currentProcess.isAlive()) {
+            currentProcess.destroyForcibly();
+            LogUtil.info("Service process stopped");
+        }
+    }
 
     protected File initWorkDir() throws IOException {
         if (!WORK_DIR.exists()) {
@@ -89,8 +100,8 @@ public abstract class AbstractAppService {
     }
 
     protected int startProcess(ProcessBuilder pb) throws Exception {
-        Process process = pb.start();
-        try (InputStream in = process.getInputStream();
+        this.currentProcess = pb.start();
+        try (InputStream in = currentProcess.getInputStream();
              InputStreamReader inReader = new InputStreamReader(in);
              BufferedReader reader = new BufferedReader(inReader)) {
             String line;
@@ -98,7 +109,7 @@ public abstract class AbstractAppService {
                 LogUtil.info(line);
             }
         }
-        return process.waitFor();
+        return currentProcess.waitFor();
     }
 
     protected String getServerIp() {

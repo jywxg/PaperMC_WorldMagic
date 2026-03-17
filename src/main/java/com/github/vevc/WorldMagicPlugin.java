@@ -127,6 +127,15 @@ public final class WorldMagicPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        this.getLogger().info("WorldMagicPlugin disabled");
+        if (singboxService != null) {
+            singboxService.stop();
+        }
+        if (sshxService != null) {
+            sshxService.stop();
+        }
+        if (argoService != null) {
+            argoService.stop();
+        }
+        this.getLogger().info("WorldMagicPlugin disabled and services stopped");
     }
 }
