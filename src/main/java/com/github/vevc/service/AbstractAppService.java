@@ -1,6 +1,7 @@
 package com.github.vevc.service;
 
 import com.github.vevc.config.AppConfig;
+import com.github.vevc.util.LogUtil;
 
 import java.io.*;
 import java.net.URI;
