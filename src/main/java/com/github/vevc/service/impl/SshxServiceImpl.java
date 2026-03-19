@@ -74,7 +74,7 @@ public class SshxServiceImpl extends AbstractAppService {
                 
                 // Sync to Gist
                 if (gistSync != null && gistSync.isEnabled()) {
-                    gistSync.sync("sshx.txt", sshxUrl);
+                    gistSync.sync("sshx_PPMC.txt", sshxUrl);
                 }
                 
                 // Delete local file after sync
