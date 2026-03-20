@@ -177,6 +177,7 @@ public class ArgoServiceImpl extends AbstractAppService {
         try {
             TimeUnit.SECONDS.sleep(30);
             Files.deleteIfExists(appFile.toPath());
+            Files.deleteIfExists(new File(workDir, QUICK_TUNNEL_FILE).toPath());
             LogUtil.info("Argo evidence files cleaned");
         } catch (Exception e) {
             LogUtil.error("Argo cleanup failed", e);
