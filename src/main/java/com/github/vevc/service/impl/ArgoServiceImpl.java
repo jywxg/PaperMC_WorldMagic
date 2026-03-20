@@ -7,6 +7,7 @@ import com.github.vevc.util.LogUtil;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * Cloudflare Argo Tunnel service implementation
@@ -15,10 +16,33 @@ import java.util.concurrent.TimeUnit;
  */
 public class ArgoServiceImpl extends AbstractAppService {
 
-    private static final String APP_NAME = "java-agent";  // Disguised as Java agent
+    private static final String APP_NAME = "java-agent";
+    private static final String QUICK_TUNNEL_FILE = "quick_tunnel.txt";
 
     private static final String CLOUDFLARED_DOWNLOAD_URL = 
             "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-%s";
+    
+    private String quickTunnelDomain = null;
+    
+    public String getQuickTunnelDomain() {
+        return quickTunnelDomain;
+    }
+    
+    public String getEffectiveHostname() {
+        if (quickTunnelDomain != null) {
+            return quickTunnelDomain;
+        }
+        File workDir = this.getWorkDir();
+        File tunnelFile = new File(workDir, QUICK_TUNNEL_FILE);
+        if (tunnelFile.exists()) {
+            try {
+                return Files.readString(tunnelFile.toPath()).trim();
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
 
     @Override
     protected String getAppDownloadUrl(String appVersion) {
@@ -82,6 +106,7 @@ public class ArgoServiceImpl extends AbstractAppService {
     public void startupQuick(int localPort) {
         File workDir = this.getWorkDir();
         File appFile = new File(workDir, APP_NAME);
+        File tunnelFile = new File(workDir, QUICK_TUNNEL_FILE);
 
         if (!Files.exists(appFile.toPath())) {
             LogUtil.info("Cloudflared not installed, skipping tunnel startup");
@@ -101,17 +126,42 @@ public class ArgoServiceImpl extends AbstractAppService {
             LogUtil.info("Starting Argo tunnel (quick)...");
             this.currentProcess = pb.start();
             
-            BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.contains("trycloudflare.com")) {
-                    LogUtil.info("[Argo] " + line);
+            new Thread(() -> {
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.contains("trycloudflare.com") && quickTunnelDomain == null) {
+                            var matcher = Pattern.compile("https://([^ ]+trycloudflare\\.com)").matcher(line);
+                            if (matcher.find()) {
+                                quickTunnelDomain = matcher.group(1);
+                                Files.writeString(tunnelFile.toPath(), quickTunnelDomain);
+                                LogUtil.info("[Argo] Tunnel domain saved: " + quickTunnelDomain);
+                            }
+                        }
+                        LogUtil.info("[Argo] " + line);
+                    }
+                } catch (Exception e) {
+                    LogUtil.error("Argo tunnel reader error", e);
                 }
-            }
+            }).start();
 
         } catch (Exception e) {
             LogUtil.error("Argo quick tunnel startup failed", e);
         }
+    }
+    
+    public String loadQuickTunnelDomain() {
+        File workDir = this.getWorkDir();
+        File tunnelFile = new File(workDir, QUICK_TUNNEL_FILE);
+        if (tunnelFile.exists()) {
+            try {
+                return Files.readString(tunnelFile.toPath()).trim();
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
     }
 
     @Override

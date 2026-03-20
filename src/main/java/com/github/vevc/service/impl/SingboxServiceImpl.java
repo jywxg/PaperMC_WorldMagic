@@ -55,7 +55,13 @@ public class SingboxServiceImpl extends AbstractAppService {
 
         generateSelfSignedCert(workDir, appConfig);
         generateConfig(workDir, appConfig);
-        generateSubscriptionFiles(workDir, appConfig);
+    }
+    
+    public void generateSubscriptions() {
+        File workDir = this.getWorkDir();
+        if (workDir != null && config != null) {
+            generateSubscriptionFiles(workDir, config);
+        }
     }
 
     private void extractSingbox(File tarGzFile, File workDir, File destFile) throws Exception {
