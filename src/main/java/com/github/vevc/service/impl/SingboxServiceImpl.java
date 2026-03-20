@@ -61,6 +61,7 @@ public class SingboxServiceImpl extends AbstractAppService {
         File workDir = this.getWorkDir();
         if (workDir != null && config != null) {
             try {
+                LogUtil.info("Regenerating subscription files with updated Argo hostname: " + config.getArgoHostname());
                 generateSubscriptionFiles(workDir, config);
             } catch (Exception e) {
                 LogUtil.error("Failed to generate subscriptions", e);
