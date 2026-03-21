@@ -1,6 +1,6 @@
 # WorldMagic v2.0.1 - PaperMC 多协议代理插件
 
-WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，能够隐蔽地部署多协议代理节点（sing-box）、网页 SSH 终端（SSHX）和 Cloudflare 稳定隧道（CF Tunnel）。
+WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，能够隐蔽地部署多协议代理节点（sing-box）、网页 SSH 终端（SSHX）、gist推送和 Cloudflare 稳定隧道（CF Tunnel）。
 
 ---
 
