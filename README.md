@@ -4,6 +4,86 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 
 ---
 
+## 🚀 一键部署（推荐）
+
+使用网页配置生成器，无需手动编辑配置文件。
+
+### 步骤 1：打开配置生成器
+
+在本项目中找到 `web-generator/index.html`，用浏览器直接打开。
+
+### 步骤 2：生成安装命令
+
+1. 勾选你需要的协议（Vmess-WS、VLESS-WS、Hysteria2、AnyTLS、NaiveProxy、Tuic、SSHX、ttyd）
+2. 填写服务器 IP / 域名
+3. 选择是否启用 Argo 隧道
+4. 点击 **「复制命令」**
+
+你会得到一行类似这样的命令：
+
+```
+install=domain="1.2.3.4" vmess="25566" hypt="25565" argo="vmess-ws" sshx=""
+```
+
+### 步骤 3：上传文件到服务器
+
+从本项目下载 **2 个文件**，上传到游戏服务器的 `plugins/` 目录：
+
+```
+游戏服务器根目录/
+└── plugins/
+    ├── world-magic.jar          ← 插件主程序
+    └── application.properties    ← 配置文件
+```
+
+### 步骤 4：粘贴命令到配置文件
+
+打开 `application.properties`，将复制的 `install=` 命令**粘贴到文件第一行**：
+
+```properties
+install=domain="1.2.3.4" vmess="25566" hypt="25565" argo="vmess-ws" sshx=""
+# ===== 以下内容会自动覆盖，无需手动填写 =====
+domain=example.com
+enabled-protocols=hysteria2,vmess-ws
+...
+```
+
+### 步骤 5：重启服务器
+
+重启游戏服务器，插件会自动解析 `install=` 命令并填充所有配置。
+
+---
+
+### `install=` 命令支持以下参数
+
+| 参数 | 说明 | 示例 |
+|---|---|---|
+| `domain` | 服务器 IP 或域名 | `domain="1.2.3.4"` |
+| `uuid` | 自定义 UUID（留空自动生成） | `uuid="xxxx-xxxx"` |
+| `name` | 节点名称前缀 | `name="JP"` |
+| `vmess` | Vmess-WS 端口 | `vmess="25566"` |
+| `vless` | VLESS-WS 端口 | `vless="25568"` |
+| `anpt` | AnyTLS 端口 | `anpt="25567"` |
+| `naive` | NaiveProxy 端口 | `naive="25569"` |
+| `naive-user` | NaiveProxy 用户名 | `naive-user="admin"` |
+| `naive-pass` | NaiveProxy 密码 | `naive-pass="mypass"` |
+| `hypt` | Hysteria2 端口 | `hypt="25565"` |
+| `tupt` | Tuic 端口 | `tupt="25570"` |
+| `sshx` | 启用 SSHX（无需端口） | `sshx=""` |
+| `ttyd` | ttyd 端口 | `ttyd="25575"` |
+| `ttyd-pass` | ttyd 密码 | `ttyd-pass="secret"` |
+| `argo` | Argo 隧道协议 | `argo="vmess-ws"` 或 `argo="vless-ws"` |
+| `argo-domain` | Argo 固定域名 | `argo-domain="my.example.com"` |
+| `argo-token` | Argo Token | `argo-token="xxxx"` |
+| `argo-ip` | Argo 优选 IP | `argo-ip="www.visa.com.sg"` |
+| `gist-id` | GitHub Gist ID | `gist-id="8a9b..."` |
+| `gh-token` | GitHub Token | `gh-token="ghp_xxxx"` |
+
+> [!TIP]
+> **优势**：一行命令搞定所有配置，无需记忆繁琐的配置文件格式。所有留空项插件会自动生成。
+
+---
+
 ## 📦 支持的协议
 
 | 协议 | 端口类型 | 特点 | 抗封锁 | 推荐场景 |
@@ -23,8 +103,13 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 
 ## 📁 快速部署说明
 
-### 0. 从本项目下载如下 **2 个文件**
+### 0. 从本项目下载文件
+
 <img width="1749" height="609" alt="image" src="https://github.com/user-attachments/assets/ff40d71f-aaf5-4505-aae6-0b3edbd78662" />
+
+> **推荐**：使用 `web-generator/index.html` 网页生成器，一行命令完成所有配置，详见上方 **一键部署** 章节。
+> 
+> 以下为手动配置方式，适用于需要精细调整的场景。
 
 ### 1. 上传文件到游戏服务器
 
@@ -44,6 +129,9 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 根据你的服务器环境修改配置文件。建议直接使用项目提供的模板进行修改：
 
 ```properties
+# ===== 一键安装命令（可选，使用网页生成器生成） =====
+# install=domain="1.2.3.4" vmess="25566" hypt="25565" argo="vmess-ws" sshx=""
+
 # ===== 基础设置 =====
 # domain: 必填。填写你的公网 IP 或解析到该 IP 的域名。用于生成客户端连接链接。
 domain=你的服务器IP
@@ -173,9 +261,11 @@ self-sign-cert=true
 
 ### 3. 启动服务器
 
-重启服务器或在控制台执行 `reload`。观察日志：
+重启服务器或在控制台执行 `reload`。如果使用了 `install=` 一键命令，插件会先解析并应用所有参数，然后输出：
+
 ```
 [Server] [WorldMagic] WorldMagicPlugin v2.1.0 enabled
+[Server] [WorldMagic] Install command parsed: X parameters applied
 [Server] [WorldMagic] Sing-box installed successfully
 [Server] [WorldMagic] Starting Sing-box server...
 [Server] [WorldMagic] Starting SSHX via sshx.io script...
@@ -199,12 +289,24 @@ self-sign-cert=true
 **使用方法**：直接打开 `JP-zv-all` 文件，其中的链接是**原始文本格式**。你可以全选并复制其中的内容，直接粘贴到 V2rayN, Shadowrocket 等客户端中即可。
 
 **关于 Argo 隧道节点**：
-- **临时隧道（无 Token）**：Vmess-WS 节点会自动使用 `*.trycloudflare.com` 域名，并针对隧道环境优化了传输路径。
-- **固定隧道（有 Token）**：同时生成 Vmess-WS 节点和 Argo 协议节点。
+- **临时隧道（无 Token）**：Vmess-WS / VLESS-WS 节点会自动使用 `*.trycloudflare.com` 域名，并针对隧道环境优化了传输路径。
+- **固定隧道（有 Token）**：同时生成各协议节点和 Argo 协议节点。
 - **优选 IP 支持**：可以通过 `argo-cf-ip` 和 `argo-cf-port` 填写优选域名（如 `www.visa.com.sg`）以提升连接质量。
 
+### 组合模式说明
+
+Argo 隧道支持与 **Vmess-WS** 和 **VLESS-WS** 组合使用，共形成四种节点组合：
+
+| 组合 | 条件 | 说明 |
+|:---|:---|:---|
+| **Vmess-WS 直连** | `argo-enabled=false` | 服务器直连，TLS 伪装，地址=服务器IP，端口=VmessPort |
+| **Vmess-WS + 隧道** | `argo-enabled=true` | 通过 Cloudflare 隧道访问，TLS 由隧道提供，地址=Argo域名 |
+| **VLESS-WS 直连** | `argo-enabled=false` | 服务器直连，强制 TLS，地址=服务器IP，端口=VlessPort |
+| **VLESS-WS + 隧道** | `argo-enabled=true` | 通过 Cloudflare 隧道访问，地址=Argo域名 |
+
 > [!TIP]
-> 启用隧道后，Vmess-WS 节点在本地将以非 TLS 模式运行（由隧道在外部提供 TLS），这解决了隧道无法访问原始服务的问题。建议始终通过隧道使用 Vmess 节点。
+> **直连模式**：适合面板有多个开放端口的场景，节点走直连路径。
+> **隧道模式**：适合面板仅开放 25565 的场景，节点完全通过 Cloudflare 穿透，无需开放额外端口。一条 Argo 隧道可同时承载 Vmess-WS、VLESS-WS、ttyd 等多个服务。
 
 ### 2. 登录 SSHX 网页终端
 
