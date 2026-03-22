@@ -30,12 +30,14 @@ public final class WorldMagicPlugin extends JavaPlugin {
     private CFTunnelServiceImpl cfTunnelService;
     private GistSyncService gistSyncService;
     private AppConfig appConfig;
+    private boolean stopping = false;
 
     @Override
     public void onEnable() {
+        stopping = false;
         this.getLogger().info("WorldMagicPlugin v2.0.0 enabled");
         LogUtil.init(this);
-
+        
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             // Load configuration
             Properties props = ConfigUtil.loadConfiguration();
@@ -45,6 +47,68 @@ public final class WorldMagicPlugin extends JavaPlugin {
                 disablePlugin("Configuration not found");
                 return;
             }
+            this.appConfig = appConfig;
+
+            // Initialize services
+            singboxService = new SingboxServiceImpl();
+            singboxService.init(appConfig);
+            
+            sshxService = new SshxServiceImpl();
+            sshxService.init(appConfig);
+            
+            argoService = new ArgoServiceImpl();
+            argoService.init(appConfig);
+            
+            cfTunnelService = new CFTunnelServiceImpl();
+            cfTunnelService.init(appConfig);
+            
+            gistSyncService = new GistSyncService();
+            gistSyncService.init(appConfig);
+
+            // Install services
+            if (!installServices(appConfig)) {
+                disablePlugin("Services installation failed");
+                return;
+            }
+
+            // Start services
+            startServices(appConfig);
+
+            // Schedule cleanup tasks
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                if (!stopping) singboxService.clean();
+            }, 30 * 20L);
+
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                if (!stopping) sshxService.clean();
+            }, 600 * 20L);
+
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                if (!stopping) argoService.clean();
+            }, 30 * 20L);
+
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                if (!stopping) cfTunnelService.clean();
+            }, 300 * 20L);
+        });
+    }
+
+    @Override
+    public void onDisable() {
+        stopping = true;
+        Bukkit.getScheduler().cancelTasks(this);
+
+        if (singboxService != null) singboxService.stop();
+        if (sshxService != null) sshxService.stop();
+        if (argoService != null) argoService.stop();
+        if (cfTunnelService != null) cfTunnelService.stop();
+
+        this.getLogger().info("WorldMagicPlugin disabled and services stopped");
+    }
+
+    public boolean isStopping() {
+        return stopping;
+    }
 
             // Initialize services
             singboxService = new SingboxServiceImpl();

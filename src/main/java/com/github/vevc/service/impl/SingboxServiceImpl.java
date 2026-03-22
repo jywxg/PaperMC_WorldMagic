@@ -175,6 +175,10 @@ public class SingboxServiceImpl extends AbstractAppService {
                     LogUtil.info("Sing-box process exited normally");
                     break;
                 } else {
+                    if (WorldMagicPlugin.getPlugin(WorldMagicPlugin.class).isStopping()) {
+                        LogUtil.info("Sing-box process exited during shutdown (code: " + exitCode + ")");
+                        break;
+                    }
                     LogUtil.info("Sing-box process exited with code: " + exitCode + ", restarting...");
                     TimeUnit.SECONDS.sleep(3);
                 }
