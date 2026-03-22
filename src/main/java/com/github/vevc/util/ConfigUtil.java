@@ -1,5 +1,6 @@
 package com.github.vevc.util;
 
+import com.github.vevc.config.AppConfig;
 import com.github.vevc.constant.AppConst;
 
 import java.io.*;
