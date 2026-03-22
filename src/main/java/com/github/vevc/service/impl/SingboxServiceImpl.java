@@ -107,6 +107,13 @@ public class SingboxServiceImpl extends AbstractAppService {
             throw new RuntimeException("Sing-box extraction timeout");
         }
 
+        File directBin = new File(workDir, "sing-box");
+        if (directBin.exists()) {
+            Files.move(directBin.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            LogUtil.info("Sing-box extracted directly to workDir");
+            return;
+        }
+
         File[] extractedDirs = workDir.listFiles((dir, name) -> name.startsWith("sing-box-") && dir.isDirectory());
         if (extractedDirs == null || extractedDirs.length == 0) {
             String[] contents = workDir.list();
