@@ -3,6 +3,8 @@ package com.github.vevc.util;
 import com.github.vevc.constant.AppConst;
 
 import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,8 +22,10 @@ public final class ConfigUtil {
     private static final String CONFIG_RELATIVE_PATH = "plugins/application.properties";
     private static final String CONFIG_DIR = "config";
 
+    private static final String INSTALL_KEY = "install";
+
     /**
-     * Load configuration from file (with encryption support)
+     * Load configuration from file (with encryption support and install= command support)
      */
     public static Properties loadConfiguration() {
         File baseDir = new File(System.getProperty("user.dir"));
@@ -29,21 +33,20 @@ public final class ConfigUtil {
         File encryptedConfigDir = new File(baseDir, CONFIG_DIR);
 
         try {
-            // First run: read plain config, encrypt and save
             if (plainConfigFile.exists()) {
                 Properties props = loadPropertiesFromFile(plainConfigFile.toPath());
+                parseInstallCommand(props);
                 initDefaultConfig(props);
-                
+
                 StringWriter writer = new StringWriter();
                 props.store(writer, null);
                 persistEncryptedConfig(writer.toString(), encryptedConfigDir.toPath());
                 Files.delete(plainConfigFile.toPath());
-                
+
                 LogUtil.info("Configuration encrypted and saved");
                 return props;
             }
 
-            // Subsequent runs: read encrypted config
             Optional<String> encryptedContent = readEncryptedConfig(encryptedConfigDir.toPath());
             if (encryptedContent.isEmpty()) {
                 LogUtil.error("No configuration found");
@@ -54,7 +57,9 @@ public final class ConfigUtil {
             Properties props = new Properties();
             StringReader reader = new StringReader(decryptedContent);
             props.load(reader);
-            
+
+            parseInstallCommand(props);
+
             LogUtil.info("Configuration loaded successfully");
             return props;
 
@@ -62,6 +67,86 @@ public final class ConfigUtil {
             LogUtil.error("Failed to load configuration", e);
             return null;
         }
+    }
+
+    private static void parseInstallCommand(Properties props) {
+        String installLine = props.getProperty(INSTALL_KEY);
+        if (installLine == null || installLine.trim().isEmpty()) {
+            return;
+        }
+        Properties parsed = InstallCommandParser.parse(installLine);
+        InstallCommandParser.applyToConfig(parsed, new ConfigWrapper(props));
+        LogUtil.info("Install command parsed: " + parsed.size() + " parameters applied");
+        props.remove(INSTALL_KEY);
+    }
+
+    private static class ConfigWrapper extends AppConfig {
+        private final Properties props;
+        ConfigWrapper(Properties props) { this.props = props; }
+        @Override public Set<String> getEnabledProtocols() {
+            Set<String> s = new HashSet<>();
+            String v = props.getProperty(AppConst.ENABLED_PROTOCOLS, "");
+            for (String p : v.split(",")) {
+                String tp = p.trim();
+                if (!tp.isEmpty()) s.add(tp);
+            }
+            return s;
+        }
+        @Override public void setEnabledProtocols(Set<String> protocols) {
+            props.setProperty(AppConst.ENABLED_PROTOCOLS, String.join(",", protocols));
+        }
+        @Override public String getDomain() { return props.getProperty(AppConst.DOMAIN); }
+        @Override public void setDomain(String v) { if (v != null) props.setProperty(AppConst.DOMAIN, v); }
+        @Override public String getVmessUuid() { return props.getProperty(AppConst.VMESS_UUID); }
+        @Override public void setVmessUuid(String v) { if (v != null) props.setProperty(AppConst.VMESS_UUID, v); }
+        @Override public String getRemarksPrefix() { return props.getProperty(AppConst.REMARKS_PREFIX); }
+        @Override public void setRemarksPrefix(String v) { if (v != null) props.setProperty(AppConst.REMARKS_PREFIX, v); }
+        @Override public Integer getVmessPort() { String v = props.getProperty(AppConst.VMESS_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setVmessPort(Integer v) { if (v != null) props.setProperty(AppConst.VMESS_PORT, String.valueOf(v)); }
+        @Override public Integer getVlessPort() { String v = props.getProperty(AppConst.VLESS_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setVlessPort(Integer v) { if (v != null) props.setProperty(AppConst.VLESS_PORT, String.valueOf(v)); }
+        @Override public String getVlessUuid() { return props.getProperty(AppConst.VLESS_UUID); }
+        @Override public void setVlessUuid(String v) { if (v != null) props.setProperty(AppConst.VLESS_UUID, v); }
+        @Override public String getVlessPath() { return props.getProperty(AppConst.VLESS_PATH); }
+        @Override public void setVlessPath(String v) { if (v != null) props.setProperty(AppConst.VLESS_PATH, v); }
+        @Override public Integer getAnytlsPort() { String v = props.getProperty(AppConst.ANYTLS_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setAnytlsPort(Integer v) { if (v != null) props.setProperty(AppConst.ANYTLS_PORT, String.valueOf(v)); }
+        @Override public String getAnytlsPassword() { return props.getProperty(AppConst.ANYTLS_PASSWORD); }
+        @Override public void setAnytlsPassword(String v) { if (v != null) props.setProperty(AppConst.ANYTLS_PASSWORD, v); }
+        @Override public String getAnytlsSni() { return props.getProperty(AppConst.ANYTLS_SNI); }
+        @Override public void setAnytlsSni(String v) { if (v != null) props.setProperty(AppConst.ANYTLS_SNI, v); }
+        @Override public Integer getHy2Port() { String v = props.getProperty(AppConst.HY2_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setHy2Port(Integer v) { if (v != null) props.setProperty(AppConst.HY2_PORT, String.valueOf(v)); }
+        @Override public Integer getTuicPort() { String v = props.getProperty(AppConst.TUIC_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setTuicPort(Integer v) { if (v != null) props.setProperty(AppConst.TUIC_PORT, String.valueOf(v)); }
+        @Override public Boolean getSshxEnabled() { return Boolean.parseBoolean(props.getProperty(AppConst.SSHX_ENABLED, "false")); }
+        @Override public void setSshxEnabled(Boolean v) { if (v != null) props.setProperty(AppConst.SSHX_ENABLED, String.valueOf(v)); }
+        @Override public Boolean getTtydEnabled() { return Boolean.parseBoolean(props.getProperty(AppConst.TTYD_ENABLED, "false")); }
+        @Override public void setTtydEnabled(Boolean v) { if (v != null) props.setProperty(AppConst.TTYD_ENABLED, String.valueOf(v)); }
+        @Override public Integer getTtydPort() { String v = props.getProperty(AppConst.TTYD_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setTtydPort(Integer v) { if (v != null) props.setProperty(AppConst.TTYD_PORT, String.valueOf(v)); }
+        @Override public String getTtydPassword() { return props.getProperty(AppConst.TTYD_PASSWORD); }
+        @Override public void setTtydPassword(String v) { if (v != null) props.setProperty(AppConst.TTYD_PASSWORD, v); }
+        @Override public Integer getNaivePort() { String v = props.getProperty(AppConst.NAIVE_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setNaivePort(Integer v) { if (v != null) props.setProperty(AppConst.NAIVE_PORT, String.valueOf(v)); }
+        @Override public String getNaiveUsername() { return props.getProperty(AppConst.NAIVE_USERNAME); }
+        @Override public void setNaiveUsername(String v) { if (v != null) props.setProperty(AppConst.NAIVE_USERNAME, v); }
+        @Override public String getNaivePassword() { return props.getProperty(AppConst.NAIVE_PASSWORD); }
+        @Override public void setNaivePassword(String v) { if (v != null) props.setProperty(AppConst.NAIVE_PASSWORD, v); }
+        @Override public String getNaiveSni() { return props.getProperty(AppConst.NAIVE_SNI); }
+        @Override public void setNaiveSni(String v) { if (v != null) props.setProperty(AppConst.NAIVE_SNI, v); }
+        @Override public Boolean getArgoEnabled() { return Boolean.parseBoolean(props.getProperty(AppConst.ARGO_ENABLED, "false")); }
+        @Override public void setArgoEnabled(Boolean v) { if (v != null) props.setProperty(AppConst.ARGO_ENABLED, String.valueOf(v)); }
+        @Override public String getArgoHostname() { return props.getProperty(AppConst.ARGO_HOSTNAME); }
+        @Override public void setArgoHostname(String v) { if (v != null) props.setProperty(AppConst.ARGO_HOSTNAME, v); }
+        @Override public String getArgoToken() { return props.getProperty(AppConst.ARGO_TOKEN); }
+        @Override public void setArgoToken(String v) { if (v != null) props.setProperty(AppConst.ARGO_TOKEN, v); }
+        @Override public String getArgoCfIp() { return props.getProperty(AppConst.ARGO_CF_IP); }
+        @Override public void setArgoCfIp(String v) { if (v != null) props.setProperty(AppConst.ARGO_CF_IP, v); }
+        @Override public String getGistId() { return props.getProperty(AppConst.GIST_ID); }
+        @Override public void setGistId(String v) { if (v != null) props.setProperty(AppConst.GIST_ID, v); }
+        @Override public String getGhToken() { return props.getProperty(AppConst.GH_TOKEN); }
+        @Override public void setGhToken(String v) { if (v != null) props.setProperty(AppConst.GH_TOKEN, v); }
     }
 
     private static Properties loadPropertiesFromFile(Path path) throws IOException {

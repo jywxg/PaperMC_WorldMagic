@@ -27,6 +27,12 @@ public class SingboxConfigBuilder {
         this.nodePrefix = config.getRemarksPrefix();
     }
 
+    private boolean useArgo() {
+        return config.getArgoEnabled()
+            && config.getArgoHostname() != null
+            && !config.getArgoHostname().isEmpty();
+    }
+
     public String build() {
         JsonObject root = new JsonObject();
 
@@ -141,14 +147,16 @@ public class SingboxConfigBuilder {
 
         JsonObject tls = new JsonObject();
         tls.addProperty("enabled", true);
-        tls.addProperty("server_name", config.getDomain());
+        String sni = useArgo() ? config.getArgoHostname() : config.getDomain();
+        tls.addProperty("server_name", sni);
         tls.addProperty("certificate_path", "javacore.txt");
         tls.addProperty("key_path", "heapdump.hprof");
         inbound.add("tls", tls);
 
         JsonObject transport = new JsonObject();
         transport.addProperty("type", "ws");
-        transport.addProperty("path", config.getVlessPath());
+        String path = useArgo() ? "/vless-argo" : config.getVlessPath();
+        transport.addProperty("path", path);
         transport.addProperty("early_data_header_name", "Sec-WebSocket-Protocol");
         inbound.add("transport", transport);
 
@@ -340,15 +348,11 @@ public class SingboxConfigBuilder {
     private String buildVmessWsLink(String serverIp) {
         String nodeName = generateNodeName("vmess");
         
-        boolean useArgo = config.getArgoEnabled() && 
-                          config.getArgoHostname() != null && 
-                          !config.getArgoHostname().isEmpty();
-        
-        String add = useArgo ? config.getArgoCfIp() : serverIp;
-        int port = useArgo ? config.getArgoCfPort() : config.getVmessPort();
-        String sni = useArgo ? config.getArgoHostname() : config.getDomain();
-        String host = useArgo ? config.getArgoHostname() : config.getDomain();
-        String path = useArgo ? "/vmess-argo?ed=2560" : config.getVmessPath();
+        String add = useArgo() ? config.getArgoCfIp() : serverIp;
+        int port = useArgo() ? config.getArgoCfPort() : config.getVmessPort();
+        String sni = useArgo() ? config.getArgoHostname() : config.getDomain();
+        String host = useArgo() ? config.getArgoHostname() : config.getDomain();
+        String path = useArgo() ? "/vmess-argo?ed=2560" : config.getVmessPath();
         
         JsonObject vmess = new JsonObject();
         vmess.addProperty("v", "2");
@@ -362,8 +366,8 @@ public class SingboxConfigBuilder {
         vmess.addProperty("type", "none");
         vmess.addProperty("host", host);
         vmess.addProperty("path", path);
-        vmess.addProperty("tls", useArgo ? "tls" : "");
-        vmess.addProperty("sni", useArgo ? sni : "");
+        vmess.addProperty("tls", useArgo() ? "tls" : "");
+        vmess.addProperty("sni", useArgo() ? sni : "");
         vmess.addProperty("alpn", "h2");
         vmess.addProperty("fp", "chrome");
         vmess.addProperty("allowInsecure", 1);
@@ -384,20 +388,27 @@ public class SingboxConfigBuilder {
 
     private String buildVlessWsLink(String serverIp) {
         String nodeName = generateNodeName("vless");
+
+        String add = useArgo() ? config.getArgoCfIp() : serverIp;
+        int port = useArgo() ? config.getArgoCfPort() : config.getVlessPort();
+        String sni = useArgo() ? config.getArgoHostname() : config.getDomain();
+        String host = useArgo() ? config.getArgoHostname() : config.getDomain();
+        String path = useArgo() ? "/vless-argo?ed=2560" : config.getVlessPath();
+
         JsonObject vless = new JsonObject();
         vless.addProperty("v", "2");
         vless.addProperty("ps", nodeName);
-        vless.addProperty("add", serverIp);
-        vless.addProperty("port", config.getVlessPort());
+        vless.addProperty("add", add);
+        vless.addProperty("port", port);
         vless.addProperty("id", config.getVlessUuid());
         vless.addProperty("aid", 0);
         vless.addProperty("scy", "auto");
         vless.addProperty("net", "ws");
         vless.addProperty("type", "none");
-        vless.addProperty("host", config.getDomain());
-        vless.addProperty("path", config.getVlessPath());
+        vless.addProperty("host", host);
+        vless.addProperty("path", path);
         vless.addProperty("tls", "tls");
-        vless.addProperty("sni", config.getDomain());
+        vless.addProperty("sni", sni);
         vless.addProperty("alpn", "h2");
         vless.addProperty("fp", "chrome");
         vless.addProperty("allowInsecure", 1);
