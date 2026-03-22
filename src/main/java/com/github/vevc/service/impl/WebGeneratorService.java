@@ -1,6 +1,5 @@
 package com.github.vevc.service.impl;
 
-import com.github.vevc.config.AppConfig;
 import com.github.vevc.util.LogUtil;
 
 import java.io.*;
@@ -46,7 +45,7 @@ public class WebGeneratorService {
 
             try (InputStream is = getClass().getResourceAsStream("/web-generator/index.html")) {
                 if (is == null) {
-                    String notFound = "Web generator not found in jar".getBytes(StandardCharsets.UTF_8);
+                    byte[] notFound = "Web generator not found in jar".getBytes(StandardCharsets.UTF_8);
                     exchange.sendResponseHeaders(404, notFound.length);
                     exchange.getResponseBody().write(notFound);
                     exchange.close();
