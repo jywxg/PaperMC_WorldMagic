@@ -168,9 +168,7 @@ public final class WorldMagicPlugin extends JavaPlugin {
                     );
                     singboxService.generateSubscriptions();
                     syncSubscriptionsToGist();
-                    } else {
-                        argoService.startupQuick(appConfig.getVmessPort());
-                        try {
+                } else {
                     argoService.startupQuick(appConfig.getVmessPort());
                     try {
                         Thread.sleep(5000);
