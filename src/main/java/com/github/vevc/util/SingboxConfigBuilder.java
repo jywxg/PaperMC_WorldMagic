@@ -62,6 +62,9 @@ public class SingboxConfigBuilder {
         if (config.isProtocolEnabled("tuic")) {
             inbounds.add(buildTuicInbound());
         }
+        if (config.getTtydEnabled()) {
+            inbounds.add(buildMixedProxyInbound());
+        }
         root.add("inbounds", inbounds);
 
         // Outbounds
@@ -109,7 +112,7 @@ public class SingboxConfigBuilder {
         JsonObject inbound = new JsonObject();
         inbound.addProperty("type", "vmess");
         inbound.addProperty("tag", "vmess-in");
-        inbound.addProperty("listen", "::");
+        inbound.addProperty("listen", useArgo() ? "127.0.0.1" : "::");
         inbound.addProperty("listen_port", config.getVmessPort());
 
         JsonArray users = new JsonArray();
@@ -136,7 +139,7 @@ public class SingboxConfigBuilder {
         JsonObject inbound = new JsonObject();
         inbound.addProperty("type", "vless");
         inbound.addProperty("tag", "vless-in");
-        inbound.addProperty("listen", "::");
+        inbound.addProperty("listen", useArgo() ? "127.0.0.1" : "::");
         inbound.addProperty("listen_port", config.getVlessPort());
 
         JsonArray users = new JsonArray();
@@ -238,6 +241,26 @@ public class SingboxConfigBuilder {
         return inbound;
     }
 
+    private JsonObject buildMixedProxyInbound() {
+        JsonObject inbound = new JsonObject();
+        inbound.addProperty("type", "mixed");
+        inbound.addProperty("tag", "proxy-in");
+        inbound.addProperty("listen", "0.0.0.0");
+        inbound.addProperty("listen_port", config.getTtydPort());
+
+        JsonArray users = new JsonArray();
+        JsonObject user = new JsonObject();
+        String ttydPass = config.getTtydPassword();
+        user.addProperty("username", "admin");
+        user.addProperty("password", ttydPass != null && !ttydPass.isEmpty() ? ttydPass : "");
+        users.add(user);
+        inbound.add("users", users);
+
+        inbound.addProperty("set_system_proxy", false);
+
+        return inbound;
+    }
+
     private void buildOutbounds() {
         JsonObject direct = new JsonObject();
         direct.addProperty("type", "direct");
@@ -249,18 +272,20 @@ public class SingboxConfigBuilder {
         route.addProperty("final", "direct");
         JsonArray rules = new JsonArray();
 
-        // 1. Sniff (Reference sample)
         JsonObject sniff = new JsonObject();
         sniff.addProperty("action", "sniff");
         rules.add(sniff);
 
-        // 2. Resolve (Reference sample)
         JsonObject resolve = new JsonObject();
         resolve.addProperty("action", "resolve");
         resolve.addProperty("strategy", "prefer_ipv6");
         rules.add(resolve);
 
-        // 3. Default Direct (Reference sample)
+        JsonObject localRule = new JsonObject();
+        localRule.addProperty("ip_is_private", true);
+        localRule.addProperty("outbound", "direct");
+        rules.add(localRule);
+
         JsonObject directRule = new JsonObject();
         JsonArray ipCidr = new JsonArray();
         ipCidr.add("::/0");

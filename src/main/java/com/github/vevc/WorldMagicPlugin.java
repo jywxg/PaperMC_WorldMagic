@@ -178,16 +178,21 @@ public final class WorldMagicPlugin extends JavaPlugin {
                     syncSubscriptionsToGist();
                 } else {
                     argoService.startupQuick(appConfig.getVmessPort());
-                    try {
-                        Thread.sleep(5000);
-                        String tunnelDomain = argoService.loadQuickTunnelDomain();
-                        if (tunnelDomain != null) {
-                            appConfig.setArgoHostname(tunnelDomain);
-                            singboxService.generateSubscriptions();
-                            syncSubscriptionsToGist();
+                    for (int i = 0; i < 20; i++) {
+                        try {
+                            Thread.sleep(1000);
+                            String tunnelDomain = argoService.loadQuickTunnelDomain();
+                            if (tunnelDomain != null) {
+                                appConfig.setArgoHostname(tunnelDomain);
+                                singboxService.generateSubscriptions();
+                                syncSubscriptionsToGist();
+                                break;
+                            }
+                            LogUtil.info("[Argo] Waiting for tunnel domain... (" + (i + 1) + "/20)");
+                        } catch (Exception e) {
+                            LogUtil.error("Failed to capture quick tunnel domain", e);
+                            break;
                         }
-                    } catch (Exception e) {
-                        LogUtil.error("Failed to capture quick tunnel domain", e);
                     }
                 }
             });
