@@ -31,8 +31,6 @@ public final class ConfigUtil {
                 Properties props = loadPropertiesFromFile(plainConfigFile.toPath());
                 initDefaultConfig(props);
                 parseInstallCommand(props);
-                LogUtil.info("[DEBUG-PLAIN] enabled-protocols in props: " + props.getProperty("enabled-protocols"));
-
                 LogUtil.info("Configuration loaded successfully");
 
                 StringWriter writer = new StringWriter();
@@ -67,8 +65,6 @@ public final class ConfigUtil {
 
             initDefaultConfig(props);
             parseInstallCommand(props);
-            LogUtil.info("[DEBUG] enabled-protocols in props: " + props.getProperty("enabled-protocols"));
-
             LogUtil.info("Configuration loaded successfully");
             return props;
 

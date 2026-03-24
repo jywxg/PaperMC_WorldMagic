@@ -132,9 +132,9 @@ public class ArgoServiceImpl extends AbstractAppService {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (line.contains("trycloudflare.com") && quickTunnelDomain == null) {
-                            var m = Pattern.compile("(https?://)?([^ ]*trycloudflare\\.com)").matcher(line);
+                            var m = Pattern.compile("https?://([a-zA-Z0-9-]+\\.trycloudflare\\.com)").matcher(line);
                             if (m.find()) {
-                                String domain = m.group(2);
+                                String domain = m.group(1);
                                 quickTunnelDomain = domain;
                                 Files.writeString(tunnelFile.toPath(), quickTunnelDomain);
                                 LogUtil.info("[Argo] Tunnel domain saved: " + quickTunnelDomain);
