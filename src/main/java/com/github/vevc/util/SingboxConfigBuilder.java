@@ -385,8 +385,8 @@ public class SingboxConfigBuilder {
     private String buildVmessWsLink(String serverIp) {
         String nodeName = generateNodeName("vmess");
         
-        String add = useArgo() ? config.getArgoCfIp() : serverIp;
-        int port = useArgo() ? config.getArgoCfPort() : config.getVmessPort();
+        String add = useArgo() ? config.getArgoHostname() : serverIp;
+        int port = useArgo() ? 443 : config.getVmessPort();
         String sni = useArgo() ? config.getArgoHostname() : config.getDomain();
         String host = useArgo() ? config.getArgoHostname() : config.getDomain();
         String path = useArgo() ? "/vmess-argo?ed=2560" : config.getVmessPath();
@@ -426,8 +426,8 @@ public class SingboxConfigBuilder {
     private String buildVlessWsLink(String serverIp) {
         String nodeName = generateNodeName("vless");
 
-        String add = useArgo() ? config.getArgoCfIp() : serverIp;
-        int port = useArgo() ? config.getArgoCfPort() : config.getVlessPort();
+        String add = useArgo() ? config.getArgoHostname() : serverIp;
+        int port = useArgo() ? 443 : config.getVlessPort();
         String sni = useArgo() ? config.getArgoHostname() : config.getDomain();
         String host = useArgo() ? config.getArgoHostname() : config.getDomain();
         String path = useArgo() ? "/vless-argo?ed=2560" : config.getVlessPath();

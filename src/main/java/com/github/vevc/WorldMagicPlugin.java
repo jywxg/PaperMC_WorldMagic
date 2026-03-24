@@ -172,12 +172,12 @@ public final class WorldMagicPlugin extends JavaPlugin {
                     argoService.startupWithToken(
                             appConfig.getArgoToken(),
                             appConfig.getArgoHostname(),
-                            appConfig.getVmessPort()
+                            appConfig.getVlessPort()
                     );
                     singboxService.generateSubscriptions();
                     syncSubscriptionsToGist();
                 } else {
-                    argoService.startupQuick(appConfig.getVmessPort());
+                    argoService.startupQuick(appConfig.getVlessPort());
                     for (int i = 0; i < 20; i++) {
                         try {
                             Thread.sleep(1000);
