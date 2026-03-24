@@ -77,6 +77,14 @@ public final class WorldMagicPlugin extends JavaPlugin {
             ttydService.setGistSync(gistSyncService);
             ttydService.setGistTtydFile(appConfig.getGistTtydFile());
 
+            if (appConfig.getTtydEnabled() && appConfig.isProtocolEnabled("tuic")
+                    && appConfig.getTtydPort() != null && appConfig.getTuicPort() != null
+                    && appConfig.getTtydPort().equals(appConfig.getTuicPort())) {
+                LogUtil.info("[WorldMagic] Port conflict: ttyd and tuic both on " + appConfig.getTtydPort()
+                        + " -> moving tuic to 25576");
+                appConfig.setTuicPort(25576);
+            }
+
             // Install all services
             if (!installServices(appConfig)) {
                 disablePlugin("Services installation failed");

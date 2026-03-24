@@ -207,7 +207,7 @@ public final class ConfigUtil {
     private static void initDefaultConfig(Properties props) {
         props.putIfAbsent(AppConst.DOMAIN, "vevc.github.com");
         props.putIfAbsent(AppConst.EMAIL, "admin@example.com");
-        props.putIfAbsent(AppConst.ENABLED_PROTOCOLS, "hysteria2,vmess-ws,anytls");
+        props.putIfAbsent(AppConst.ENABLED_PROTOCOLS, "hysteria2");
         props.putIfAbsent(AppConst.HY2_PORT, "8443");
         props.putIfAbsent(AppConst.HY2_PASSWORD, UUID.randomUUID().toString());
         props.putIfAbsent(AppConst.HY2_UP_MBPS, "100");
