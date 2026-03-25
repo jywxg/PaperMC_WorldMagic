@@ -512,17 +512,17 @@
       if (argoIp && argoIp !== 'www.visa.com.sg') parts.push(kv('argo-ip', argoIp));
     }
 
-    if ($('cb-sshx') && $('cb-sshx').checked) {
-      parts.push('sshx="true"');
-    }
     paperProtos.forEach(function(p) {
       var cb = $(p.cb);
       if (!cb.checked) return;
       var key = p.cb.replace('cb-', '');
-      if (key === 'sshx') return;
       var pt = $(p.pt);
       var port = pt ? pt.value.trim() : '';
-      if (port) parts.push(kv(key, port));
+      if (key === 'sshx') {
+        parts.push(kv('sshx', 'true'));
+      } else if (port) {
+        parts.push(kv(key, port));
+      }
     });
 
     var naiveUser = $('p-naive-user').value.trim();
@@ -589,14 +589,9 @@ sync();
   $('f-argo').addEventListener('change', function() {
     var v = this.value;
     $('f-argo-domain-row').style.display = v ? '' : 'none';
-    $('f-argo-token-row').style.display = 'none';
+    $('f-argo-token-row').style.display = v ? '' : 'none';
     if (v === 'vmess-ws') { $('fb-cb-vmess').checked = true; $('fb-item-vmess').classList.add('active'); }
     if (v === 'vless-ws') { $('fb-cb-vless').checked = true; $('fb-item-vless').classList.add('active'); }
-    renderFabric();
-  });
-
-  $('f-argo-domain').addEventListener('input', function() {
-    $('f-argo-token-row').style.display = this.value.trim() ? '' : 'none';
     renderFabric();
   });
 

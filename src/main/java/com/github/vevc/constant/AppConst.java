@@ -59,12 +59,6 @@ public interface AppConst {
     // SSHX
     String SSHX_ENABLED = "sshx-enabled";
 
-    // ttyd
-    String TTYD_ENABLED = "ttyd-enabled";
-    String TTYD_PORT = "ttyd-port";
-    String TTYD_PASSWORD = "ttyd-password";
-    String GIST_TTYD_FILE = "gist-ttyd-file";
-
     // Web Generator (embedded HTTP server)
     String WEB_GENERATOR_ENABLED = "web-generator-enabled";
     String WEB_GENERATOR_PORT = "web-generator-port";

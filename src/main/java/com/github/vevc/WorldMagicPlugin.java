@@ -6,7 +6,6 @@ import com.github.vevc.service.impl.CFTunnelServiceImpl;
 import com.github.vevc.service.impl.GistSyncService;
 import com.github.vevc.service.impl.SingboxServiceImpl;
 import com.github.vevc.service.impl.SshxServiceImpl;
-import com.github.vevc.service.impl.TtydServiceImpl;
 import com.github.vevc.service.impl.WebGeneratorService;
 import com.github.vevc.service.impl.MaohiService;
 import com.github.vevc.util.ConfigUtil;
@@ -21,7 +20,7 @@ import java.util.Properties;
 /**
  * WorldMagic Plugin - Multi-Protocol Proxy Server for PaperMC
  *
- * Supports: Hysteria2, Vmess-WS, AnyTLS, Argo Tunnel, Tuic, SSHX, ttyd
+ * Supports: Hysteria2, Vmess-WS, AnyTLS, Argo Tunnel, Tuic, SSHX
  *
  * @author vevc
  */
@@ -29,7 +28,6 @@ public final class WorldMagicPlugin extends JavaPlugin {
 
     private SingboxServiceImpl singboxService;
     private SshxServiceImpl sshxService;
-    private TtydServiceImpl ttydService;
     private ArgoServiceImpl argoService;
     private CFTunnelServiceImpl cfTunnelService;
     private WebGeneratorService webGeneratorService;
@@ -64,26 +62,15 @@ public final class WorldMagicPlugin extends JavaPlugin {
             // Initialize services
             singboxService = new SingboxServiceImpl();
             sshxService = new SshxServiceImpl();
-            ttydService = new TtydServiceImpl();
             argoService = new ArgoServiceImpl();
             cfTunnelService = new CFTunnelServiceImpl();
             maohiService = new MaohiService(appConfig);
             gistSyncService = new GistSyncService(appConfig);
             this.appConfig = appConfig;
 
-            // Link GistSync to SSHX and ttyd
+            // Link GistSync to SSHX
             sshxService.setGistSync(gistSyncService);
             sshxService.setGistSshxFile(appConfig.getGistSshxFile());
-            ttydService.setGistSync(gistSyncService);
-            ttydService.setGistTtydFile(appConfig.getGistTtydFile());
-
-            if (appConfig.getTtydEnabled() && appConfig.isProtocolEnabled("tuic")
-                    && appConfig.getTtydPort() != null && appConfig.getTuicPort() != null
-                    && appConfig.getTtydPort().equals(appConfig.getTuicPort())) {
-                LogUtil.info("[WorldMagic] Port conflict: ttyd and tuic both on " + appConfig.getTtydPort()
-                        + " -> moving tuic to 25576");
-                appConfig.setTuicPort(25576);
-            }
 
             // Install all services
             if (!installServices(appConfig)) {
@@ -107,11 +94,6 @@ public final class WorldMagicPlugin extends JavaPlugin {
             // Install SSHX if enabled
             if (appConfig.getSshxEnabled()) {
                 sshxService.install(appConfig);
-            }
-
-            // Install ttyd if enabled
-            if (appConfig.getTtydEnabled()) {
-                ttydService.install(appConfig);
             }
 
             // Install Argo if enabled
@@ -152,16 +134,6 @@ public final class WorldMagicPlugin extends JavaPlugin {
             });
             Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
                 if (!stopping) sshxService.clean();
-            }, 600 * 20L);
-        }
-
-        // Start ttyd if enabled
-        if (appConfig.getTtydEnabled()) {
-            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                ttydService.startup();
-            });
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-                if (!stopping) ttydService.clean();
             }, 600 * 20L);
         }
 
@@ -250,7 +222,6 @@ public final class WorldMagicPlugin extends JavaPlugin {
             singboxService.stop();
         }
         if (sshxService != null) sshxService.stop();
-        if (ttydService != null) ttydService.stop();
         if (maohiService != null) maohiService.stop();
         if (webGeneratorService != null) webGeneratorService.stop();
         if (argoService != null) argoService.stop();

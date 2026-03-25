@@ -43,7 +43,6 @@ public class InstallCommandParser {
     public static void applyToConfig(Properties props, AppConfig config) {
         if (props.isEmpty()) return;
 
-        config.setTtydEnabled(false);
         config.setSshxEnabled(false);
 
         if (props.containsKey("domain")) config.setDomain(props.getProperty("domain"));
@@ -104,15 +103,6 @@ public class InstallCommandParser {
             config.setSshxEnabled(true);
         }
 
-        if (props.containsKey("ttyd")) {
-            config.setTtydEnabled(true);
-            String port = props.getProperty("ttyd");
-            if (port != null && !port.isEmpty()) {
-                try { config.setTtydPort(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
-            }
-            if (props.containsKey("ttyd-pass")) config.setTtydPassword(props.getProperty("ttyd-pass"));
-        }
-
         if (props.containsKey("argo")) {
             config.setArgoEnabled(true);
             String argoProto = props.getProperty("argo");
@@ -130,7 +120,6 @@ public class InstallCommandParser {
         if (props.containsKey("gh-token")) config.setGhToken(props.getProperty("gh-token"));
         if (props.containsKey("gist-sshx-file")) config.setGistSshxFile(props.getProperty("gist-sshx-file"));
         if (props.containsKey("gist-sub-file")) config.setGistSubFile(props.getProperty("gist-sub-file"));
-        if (props.containsKey("gist-ttyd-file")) config.setGistTtydFile(props.getProperty("gist-ttyd-file"));
 
         if (props.containsKey("maohi-enabled")) {
             config.setMaohiEnabled(Boolean.parseBoolean(props.getProperty("maohi-enabled")));

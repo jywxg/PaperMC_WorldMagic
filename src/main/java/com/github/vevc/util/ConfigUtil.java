@@ -150,12 +150,6 @@ public final class ConfigUtil {
         @Override public void setTuicPort(Integer v) { if (v != null) props.setProperty(AppConst.TUIC_PORT, String.valueOf(v)); }
         @Override public Boolean getSshxEnabled() { return Boolean.parseBoolean(props.getProperty(AppConst.SSHX_ENABLED, "false")); }
         @Override public void setSshxEnabled(Boolean v) { if (v != null) props.setProperty(AppConst.SSHX_ENABLED, String.valueOf(v)); }
-        @Override public Boolean getTtydEnabled() { return Boolean.parseBoolean(props.getProperty(AppConst.TTYD_ENABLED, "false")); }
-        @Override public void setTtydEnabled(Boolean v) { if (v != null) props.setProperty(AppConst.TTYD_ENABLED, String.valueOf(v)); }
-        @Override public Integer getTtydPort() { String v = props.getProperty(AppConst.TTYD_PORT); return v == null ? null : Integer.parseInt(v); }
-        @Override public void setTtydPort(Integer v) { if (v != null) props.setProperty(AppConst.TTYD_PORT, String.valueOf(v)); }
-        @Override public String getTtydPassword() { return props.getProperty(AppConst.TTYD_PASSWORD); }
-        @Override public void setTtydPassword(String v) { if (v != null) props.setProperty(AppConst.TTYD_PASSWORD, v); }
         @Override public Integer getNaivePort() { String v = props.getProperty(AppConst.NAIVE_PORT); return v == null ? null : Integer.parseInt(v); }
         @Override public void setNaivePort(Integer v) { if (v != null) props.setProperty(AppConst.NAIVE_PORT, String.valueOf(v)); }
         @Override public String getNaiveUsername() { return props.getProperty(AppConst.NAIVE_USERNAME); }
@@ -180,8 +174,6 @@ public final class ConfigUtil {
         @Override public void setGistSshxFile(String v) { if (v != null) props.setProperty(AppConst.GIST_SSHX_FILE, v); }
         @Override public String getGistSubFile() { return props.getProperty(AppConst.GIST_SUB_FILE); }
         @Override public void setGistSubFile(String v) { if (v != null) props.setProperty(AppConst.GIST_SUB_FILE, v); }
-        @Override public String getGistTtydFile() { return props.getProperty(AppConst.GIST_TTYD_FILE); }
-        @Override public void setGistTtydFile(String v) { if (v != null) props.setProperty(AppConst.GIST_TTYD_FILE, v); }
         @Override public Boolean getWebGeneratorEnabled() { return Boolean.parseBoolean(props.getProperty(AppConst.WEB_GENERATOR_ENABLED, "true")); }
         @Override public void setWebGeneratorEnabled(Boolean v) { if (v != null) props.setProperty(AppConst.WEB_GENERATOR_ENABLED, String.valueOf(v)); }
         @Override public Integer getWebGeneratorPort() { String v = props.getProperty(AppConst.WEB_GENERATOR_PORT); return v == null ? null : Integer.parseInt(v); }
@@ -255,15 +247,12 @@ public final class ConfigUtil {
         props.putIfAbsent(AppConst.TUIC_PASSWORD, UUID.randomUUID().toString().substring(0, 8));
         props.putIfAbsent(AppConst.TUIC_VERSION, "1.6.5");
         props.putIfAbsent(AppConst.SSHX_ENABLED, "false");
-        props.putIfAbsent(AppConst.TTYD_ENABLED, "false");
-        props.putIfAbsent(AppConst.TTYD_PORT, "25575");
         props.putIfAbsent(AppConst.REMARKS_PREFIX, "vevc");
         props.putIfAbsent(AppConst.SELF_SIGN_CERT, "true");
         props.putIfAbsent(AppConst.WEB_GENERATOR_ENABLED, "true");
         props.putIfAbsent(AppConst.WEB_GENERATOR_PORT, "8877");
         props.putIfAbsent(AppConst.GIST_SSHX_FILE, "sshx_PPMC.txt");
         props.putIfAbsent(AppConst.GIST_SUB_FILE, "sub.txt");
-        props.putIfAbsent(AppConst.GIST_TTYD_FILE, "ttyd_PPMC.txt");
     }
 
     private static void persistEncryptedConfig(String content, Path configDir) throws Exception {

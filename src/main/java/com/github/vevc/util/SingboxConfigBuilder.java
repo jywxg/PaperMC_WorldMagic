@@ -62,9 +62,6 @@ public class SingboxConfigBuilder {
         if (config.isProtocolEnabled("tuic")) {
             inbounds.add(buildTuicInbound());
         }
-        if (config.getTtydEnabled()) {
-            inbounds.add(buildMixedProxyInbound());
-        }
         root.add("inbounds", inbounds);
 
         // Outbounds
@@ -242,40 +239,11 @@ public class SingboxConfigBuilder {
         return inbound;
     }
 
-    private JsonObject buildMixedProxyInbound() {
-        JsonObject inbound = new JsonObject();
-        inbound.addProperty("type", "mixed");
-        inbound.addProperty("tag", "mixed-in");
-        inbound.addProperty("listen", "0.0.0.0");
-        inbound.addProperty("listen_port", config.getTtydPort());
-
-        JsonArray users = new JsonArray();
-        JsonObject user = new JsonObject();
-        String ttydPass = config.getTtydPassword();
-        user.addProperty("username", "admin");
-        user.addProperty("password", ttydPass != null && !ttydPass.isEmpty() ? ttydPass : "");
-        users.add(user);
-        inbound.add("users", users);
-
-        inbound.addProperty("set_system_proxy", false);
-
-        return inbound;
-    }
-
     private void buildOutbounds() {
         JsonObject direct = new JsonObject();
         direct.addProperty("type", "direct");
         direct.addProperty("tag", "direct");
         outbounds.add(direct);
-
-        if (config.getTtydEnabled()) {
-            JsonObject socksOut = new JsonObject();
-            socksOut.addProperty("type", "socks");
-            socksOut.addProperty("tag", "ttyd-out");
-            socksOut.addProperty("server", "127.0.0.1");
-            socksOut.addProperty("server_port", 3000);
-            outbounds.add(socksOut);
-        }
     }
 
     private void buildRoute() {
@@ -290,14 +258,6 @@ public class SingboxConfigBuilder {
         resolve.addProperty("action", "resolve");
         resolve.addProperty("strategy", "prefer_ipv6");
         rules.add(resolve);
-
-        JsonObject localhostRule = new JsonObject();
-        JsonArray localhostCidr = new JsonArray();
-        localhostCidr.add("127.0.0.1/32");
-        localhostCidr.add("::1/128");
-        localhostRule.add("ip_cidr", localhostCidr);
-        localhostRule.addProperty("outbound", "ttyd-out");
-        rules.add(localhostRule);
 
         JsonObject directRule = new JsonObject();
         JsonArray ipCidr = new JsonArray();

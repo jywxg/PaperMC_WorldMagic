@@ -176,12 +176,7 @@ public class SingboxServiceImpl extends AbstractAppService {
             LogUtil.info("  - 物理入口 1: Hy2 (UDP:" + config.getHy2Port() + ")");
         }
         if (config.isProtocolEnabled("tuic")) {
-            LogUtil.info("  - 物理入口 2: Tuic (UDP:" + config.getTuicPort() + ") & 管理网关 (TCP:" + config.getTtydPort() + ")");
-        } else if (config.getTtydEnabled()) {
-            LogUtil.info("  - 物理入口 2: 管理网关 (TCP:" + config.getTtydPort() + ")");
-        }
-        if (config.getTtydEnabled()) {
-            LogUtil.info("  - 内部终端: 已锁定在 127.0.0.1:3000，请通过代理访问。");
+            LogUtil.info("  - 物理入口 2: Tuic (UDP:" + config.getTuicPort() + ")");
         }
     }
 
