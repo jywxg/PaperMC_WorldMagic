@@ -486,14 +486,9 @@
   $('p-argo').addEventListener('change', function() {
     var v = this.value;
     $('p-argo-domain-row').style.display = v ? '' : 'none';
-    $('p-argo-token-row').style.display = 'none';
+    $('p-argo-token-row').style.display = v ? '' : 'none';
     if (v === 'vmess-ws') { $('cb-vmess').checked = true; $('item-vmess').classList.add('active'); }
     if (v === 'vless-ws') { $('cb-vless').checked = true; $('item-vless').classList.add('active'); }
-    renderPaper();
-  });
-
-  $('p-argo-domain').addEventListener('input', function() {
-    $('p-argo-token-row').style.display = this.value.trim() ? '' : 'none';
     renderPaper();
   });
 
@@ -525,12 +520,15 @@
     paperProtos.forEach(function(p) {
       var cb = $(p.cb);
       if (!cb.checked) return;
-      var pt = p.pt ? $(p.pt) : null;
-      var port = pt ? pt.value.trim() : '';
       var key = p.cb.replace('cb-', '');
-      if (p.pt === null) {
-        parts.push(kv(key, 'true'));
+      if (key === 'sshx') {
+        parts.push('sshx="true"');
+      } else if (key === 'ttyd') {
+        var port = $('pt-ttyd').value.trim() || '25575';
+        parts.push('ttyd="' + port + '"');
       } else {
+        var pt = $(p.pt);
+        var port = pt ? pt.value.trim() : '';
         parts.push(kv(key, port));
       }
     });
